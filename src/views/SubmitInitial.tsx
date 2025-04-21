@@ -182,13 +182,13 @@ export default function SubmitInitial() {
       {/* Scrollable Main Content Area */}
       <Box
         sx={{
-          pb: 8,
+          pb: 2,
           overflowY: 'auto',
           height: '100vh',
+          width: '100vw',
           backgroundImage: 'url("/wrinkled-paper-texture.jpg")',
           backgroundRepeat: 'repeat',
           backgroundSize: 'cover',
-          px: 2,
         }}
       >
         {/* Top App Bar */}
@@ -207,78 +207,80 @@ export default function SubmitInitial() {
 
         <Box sx={{ pt: 2, pb: 2, textAlign: 'center' }}>
           <Typography variant="h4" gutterBottom sx={{ color: 'text.primary' }}>
-            Pick Your Top 5 Tracks from 2000 to 2025
+            Nominate 5 Songs from 2000 to 2025
           </Typography>
         </Box>
 
-        <Stack spacing={2}>
-          <List disablePadding>
-            {isLoading ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                {/* Skeleton loader for each card */}
-                {new Array(5).fill(null).map((_, index) => (
-                  <ListItem
-                    key={index}
-                    sx={{
-                      bgcolor: 'background.paper',
-                      color: 'text.primary',
-                      borderRadius: 2,
-                      border: '1px solid #ddd',
-                      mb: 1,
-                      px: 2,
-                      py: 1.5,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Skeleton
-                      variant="rectangular"
-                      width={56}
-                      height={56}
-                      sx={{ borderRadius: 1 }}
-                    />
-                    <ListItemText
-                      primary={<Skeleton width="50%" />}
-                      secondary={<Skeleton width="60%" />}
-                      sx={{ ml: 2 }}
-                    />
-                  </ListItem>
-                ))}
-              </Box>
-            ) : (
-              selectedSongs.map((song, index) => (
-                <ListItem
-                  key={song?.spotifyUrl || index}
-                  onClick={() => handleOpenSearchDialog(index)}
-                  sx={{
-                    bgcolor: 'background.paper',
-                    color: 'text.primary',
-                    borderRadius: 2,
-                    border: '1px solid #ddd',
-                    mb: 1,
-                    px: 2,
-                    py: 1.5,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar
-                      src={song?.imageUrl}
-                      alt={song?.name}
-                      variant="square"
-                      sx={{ width: 56, height: 56, borderRadius: 1 }}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={song ? song.name : `Select Song ${index + 1}`}
-                    secondary={song ? song.artist : 'Tap to search and add a song'}
-                    primaryTypographyProps={{ fontWeight: song ? 500 : 400 }}
-                    sx={{ ml: 2 }}
-                  />
-                </ListItem>
-              ))
-            )}
-          </List>
-        </Stack>
+        <Stack spacing={2} sx={{ pb: 2 }}>
+  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+    <List disablePadding sx={{ width: '100%', maxWidth: 600, px: 2 }}>
+      {isLoading ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+          {new Array(5).fill(null).map((_, index) => (
+            <ListItem
+              key={index}
+              sx={{
+                bgcolor: 'background.paper',
+                color: 'text.primary',
+                borderRadius: 2,
+                border: '1px solid #ddd',
+                mb: 1,
+                px: 2,
+                py: 1.5,
+                cursor: 'pointer',
+              }}
+            >
+              <Skeleton
+                variant="rectangular"
+                width={56}
+                height={56}
+                sx={{ borderRadius: 1 }}
+              />
+              <ListItemText
+                primary={<Skeleton width="50%" />}
+                secondary={<Skeleton width="60%" />}
+                sx={{ ml: 2 }}
+              />
+            </ListItem>
+          ))}
+        </Box>
+      ) : (
+        selectedSongs.map((song, index) => (
+          <ListItem
+            key={song?.spotifyUrl || index}
+            onClick={() => handleOpenSearchDialog(index)}
+            sx={{
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              borderRadius: 2,
+              border: '1px solid #ddd',
+              mb: 1,
+              px: 2,
+              py: 1.5,
+              cursor: 'pointer',
+            }}
+          >
+            <ListItemAvatar>
+              <Avatar
+                src={song?.imageUrl}
+                alt={song?.name}
+                variant="square"
+                sx={{ width: 56, height: 56, borderRadius: 1 }}
+              />
+            </ListItemAvatar>
+            <ListItemText
+              primary={song ? song.name : `Select Song ${index + 1}`}
+              secondary={song ? song.artist : 'Tap to search and add a song'}
+              primaryTypographyProps={{ fontWeight: song ? 500 : 400 }}
+              sx={{ ml: 2 }}
+            />
+          </ListItem>
+        ))
+      )}
+    </List>
+  </Box>
+</Stack>
+
       </Box>
 
       {/* Bottom Submit Bar (Fixed) */}
@@ -326,25 +328,30 @@ export default function SubmitInitial() {
 
       {/* Search Dialog */}
       <Dialog
-        fullScreen={useMediaQuery(useTheme().breakpoints.down('sm'))}
-        open={open}
-        onClose={handleClose}
-        slots={{ transition: Transition }}
-      >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Add a Song
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Box sx={{ p: 3 }}>
-          <SearchComponent onSelect={handleSongSelect} />
-        </Box>
-      </Dialog>
+  fullScreen={useMediaQuery(useTheme().breakpoints.down('sm'))}
+  open={open}
+  onClose={handleClose}
+  fullWidth
+  maxWidth="md"
+  slots={{ transition: Transition }}
+>
+  <AppBar sx={{ position: 'relative' }}>
+    <Toolbar>
+      <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
+        <CloseIcon />
+      </IconButton>
+      <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+        Add a Song
+      </Typography>
+    </Toolbar>
+  </AppBar>
+
+  {/* Remove padding here */}
+  <Box sx={{px: 2, pt: 2}}>
+    <SearchComponent onSelect={handleSongSelect} />
+  </Box>
+</Dialog>
+
 
       {/* Snackbar */}
       <Snackbar

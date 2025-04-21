@@ -70,7 +70,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ onSelect }) => {
                 setLoading(true);
                 setError('');
 
-                const response = await axios.post('/api/spotify/search', {
+                const response = await axios.post(`${API_URL}/api/spotify/search`, {
                     token,
                     query,
                 });
@@ -99,7 +99,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ onSelect }) => {
     };
 
     return (
-        <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+        <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
             <TextField
                 label="Search Songs"
                 variant="outlined"
