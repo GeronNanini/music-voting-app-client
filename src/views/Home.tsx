@@ -12,6 +12,7 @@ import {
   DialogContentText,
   DialogActions,
   CircularProgress,
+  Skeleton,
 } from '@mui/material';
 
 import RankDialog from '../components/RankDialog'; // adjust the path as needed
@@ -24,18 +25,12 @@ export default function Home() {
   const [songCount, setSongCount] = useState<number | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [hasVotedFinal, setHasVotedFinal] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [loadingContent, setLoadingContent] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-
   const [rankDialogOpen, setRankDialogOpen] = useState(false);
   const [finalSongs, setFinalSongs] = useState<any[]>([]);
-
   const [loadingSongs, setLoadingSongs] = useState(false);
-
-
-
 
   const fetchSongCount = useCallback(async () => {
     try {
@@ -88,10 +83,11 @@ export default function Home() {
   }, [navigate, fetchSongCount]);
 
   useEffect(() => {
-    if (!loadingContent) {
-      window.scrollTo(0, 0); // Scroll to top after content loads
+    if (!loadingContent && !loading) {
+      window.scrollTo(0, 0);
     }
-  }, [loadingContent]);
+  }, [loadingContent, loading]);
+  
 
   const handleViewVotesClick = async () => {
     const user = localStorage.getItem('userName');
@@ -116,129 +112,158 @@ export default function Home() {
       sx={{
         width: '100vw',
         minHeight: '100vh',
-        backgroundImage: 'url("/home-bg-alt.jpg")',
+        backgroundImage: 'url("/green-wrinkled-paper.png")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        position: 'relative',
         px: 3,
+        pt: 4,
       }}
     >
-      <Stack
-        spacing={4}
-        alignItems="center"
-        justifyContent="center"
+      {/* Centered heading + song count */}
+      <Box
         sx={{
+          position: 'absolute',
+          top: 0,
           width: '100%',
           maxWidth: 600,
+          left: '50%',
+          transform: 'translateX(-50%)',
           textAlign: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0)',
+          paddingTop: 'calc(14vh)',
+          paddingBottom: 'calc(20vh + 80px)', // spacing before the button stack
         }}
       >
         <img
-          src="/home-heading.svg"
+          src="/home-heading.png"
           alt="Hottest 100 Heading"
-          style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+          style={{ maxWidth: '90%', height: 'auto', display: 'block', margin: '0 auto' }}
         />
 
-        {loading ? (
-          <Stack spacing={2} alignItems="center">
-            <CircularProgress />
-            <Typography variant="body1">Loading...</Typography>
-          </Stack>
-        ) : (
-          <>
-            {songCount !== null && (
-              <Typography variant="body1" sx={{ color: 'text.primary' }}>
-                There {songCount === 1 ? 'is' : 'are'} currently {songCount}/110 song
-                {songCount !== 1 ? 's' : ''} in the pool.
-              </Typography>
-            )}
+{loadingContent ? (
+  <Skeleton
+    variant="text"
+    width={280}
+    height={28}
+    sx={{ mt: 2, mx: 'auto' }}
+  />
+) : songCount !== null && (
+  <Typography
+    variant="body1"
+    sx={{ mt: 2, color: 'text.primary' }}
+  >
+    There {songCount === 1 ? 'is' : 'are'} currently {songCount}/110 song
+    {songCount !== 1 ? 's' : ''} in the pool.
+  </Typography>
+)}
 
-            <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundImage: 'url("/button-background.jpg")',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                padding: 2,
-                borderRadius: 2,
-              }}
-            >
-              <Stack spacing={2} width="100%" alignItems="center">
-                <Button
-                  variant="contained"
-                  size="large"
-                  sx={{ py: 3, width: '90%', px: 2 }}
-                  onClick={() => navigate('/submit-initial')}
-                >
-                  {hasSubmitted ? '✏️ Update my songs' : '🎧 Nominate Songs'}
-                </Button>
+      </Box>
 
-                <Button
-                  variant="contained"
-                  size="large"
-                  color="primary"
-                  fullWidth
-                  sx={{ py: 3, width: '90%', px: 2 }}
-                  onClick={hasVotedFinal ? handleViewVotesClick : () => navigate('/vote')}
-                  disabled={loadingSongs}
-                >
-
-                  {loadingSongs ? (
-                    <>
-                      <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
-                      Loading...
-                    </>
-                  ) : hasVotedFinal ? (
-                    '👀 View my votes'
-                  ) : (
-                    '📝 Vote'
-                  )}
-                </Button>
-
-
-
-              </Stack>
-            </Box>
-
-          </>
-        )}
-
-        <Dialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          aria-labelledby="vote-locked-dialog-title"
-          aria-describedby="vote-locked-dialog-description"
+      {/* Fixed bottom button stack with skeletons */}
+      <Box
+  sx={{
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    backgroundImage: 'url("/mustard-dotted-scrap.png")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'top',
+    backgroundRepeat: 'no-repeat',
+    py: 6,
+    zIndex: 10,
+  }}
+>
+  <Stack
+    spacing={2}
+    sx={{
+      width: '90%',
+      maxWidth: 600,
+      mx: 'auto',
+      px: 3,
+    }}
+    alignItems="center"
+  >
+    {loadingContent ? (
+      <>
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={74}
+          sx={{ borderRadius: 1 }}
+        />
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height={74}
+          sx={{ borderRadius: 1 }}
+        />
+      </>
+    ) : (
+      <>
+        <Button
+          variant="contained"
+          size="large"
+          sx={{ py: 3, width: '100%', px: 2 }}
+          onClick={() => navigate('/submit-initial')}
         >
-          <DialogTitle id="vote-locked-dialog-title">Voting Locked</DialogTitle>
-          <DialogContent>
-            <DialogContentText id="vote-locked-dialog-description">
-              Note: Voting is locked until everyone has voted.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDialogOpen(false)} color="primary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Stack>
+          {hasSubmitted ? '✏️ Update my songs' : '🎧 Nominate Songs'}
+        </Button>
+
+        <Button
+          variant="contained"
+          size="large"
+          color="primary"
+          fullWidth
+          sx={{ py: 3, width: '100%', px: 2 }}
+          onClick={hasVotedFinal ? handleViewVotesClick : () => navigate('/vote')}
+          disabled={loadingSongs}
+        >
+          {loadingSongs ? (
+            <>
+              <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
+              Loading...
+            </>
+          ) : hasVotedFinal ? (
+            '👀 View my votes'
+          ) : (
+            '📝 Vote'
+          )}
+        </Button>
+      </>
+    )}
+  </Stack>
+</Box>
+
+      {/* Dialogs */}
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        aria-labelledby="vote-locked-dialog-title"
+        aria-describedby="vote-locked-dialog-description"
+      >
+        <DialogTitle id="vote-locked-dialog-title">Voting Locked</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="vote-locked-dialog-description">
+            Note: Voting is locked until everyone has voted.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <RankDialog
-  open={rankDialogOpen}
-  onClose={() => setRankDialogOpen(false)}
-  songs={finalSongs}
-  onUpdateSongs={() => { }}
-  readonly={true}
-  hideDialogActions={hasVotedFinal}
-/>
-
+        open={rankDialogOpen}
+        onClose={() => setRankDialogOpen(false)}
+        songs={finalSongs}
+        onUpdateSongs={() => {}}
+        readonly={true}
+        hideDialogActions={hasVotedFinal}
+      />
     </Box>
-
   );
 }

@@ -108,7 +108,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ onSelect }) => {
                 onFocus={handleInteraction}
                 onChange={(e) => {
                     handleInteraction();
-                    setQuery(e.target.value);
+                    setQuery(e.target.value.trimStart());
                 }}
                 sx={{ mb: 2 }}
             />
@@ -116,7 +116,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({ onSelect }) => {
             {loading && <CircularProgress sx={{ display: 'block', margin: 'auto' }} />}
             {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
 
-            {!loading && !error && results.length > 0 && (
+            {!loading && !error && hasInteracted.current && results.length > 0 && (
                 <List>
                     {results.map((song, index) => (
                         <ListItem

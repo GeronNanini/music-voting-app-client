@@ -92,16 +92,27 @@ export default function SubmitInitial() {
     setSelectedIndex(null);
   };
 
+  const normalizeString = (str: string) =>
+    str.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/gi, '');
+
   const handleSongSelect = (song: SongSelection) => {
     if (selectedIndex === null) return;
 
-    const isDuplicate = selectedSongs.some((s, idx) =>
-      idx !== selectedIndex && s?.spotifyUrl === song.spotifyUrl
-    );
+    const newSongName = normalizeString(song.name);
+    const newSongArtist = normalizeString(song.artist);
+
+    const isDuplicate = selectedSongs.some((s, idx) => {
+      if (idx === selectedIndex || !s) return false;
+
+      const existingName = normalizeString(s.name);
+      const existingArtist = normalizeString(s.artist);
+
+      return existingName === newSongName && existingArtist === newSongArtist;
+    });
 
     if (isDuplicate) {
-      setErrorMessage('You’ve already added this song');
-      setAlertSeverity('error'); // Set severity dynamically
+      setErrorMessage('This song already exists in your list.');
+      setAlertSeverity('error');
       setShowSnackbar(true);
       return;
     }
@@ -179,25 +190,61 @@ export default function SubmitInitial() {
 
   return (
     <>
-      {/* Scrollable Main Content Area */}
+      {/* Fixed Background Wrapper */}
       <Box
         sx={{
-          pb: 2,
-          overflowY: 'auto',
+          position: 'fixed',
+          top: 0,
+          left: 0,
           height: '100vh',
           width: '100vw',
-          backgroundImage: 'url("/wrinkled-paper-texture.jpg")',
+          backgroundImage: 'url("/white-wrinkled-paper.png")',
           backgroundRepeat: 'repeat',
           backgroundSize: 'cover',
+          zIndex: -1,
+        }}
+      />
+
+      {/* Scrollable Content Area */}
+      <Box
+        sx={{
+          height: '100vh',
+          width: '100vw',
+          overflowY: 'auto',
+          pb: 12, // Padding for bottom bar
         }}
       >
+
+        <Box
+          component="img"
+          src="/nomination-screen-overlays.png"
+          sx={{
+            position: 'fixed',
+            top: (theme) => theme.spacing(3),
+            left: '50%',
+            transform: (theme) => `translateX(calc(-55% + ${theme.spacing(0.25)})) scale(1.5)`,
+            transformOrigin: 'top center',
+            zIndex: 10,
+            width: '100%',
+            maxWidth: 600,
+          }}
+        />
+
+
+
         {/* Top App Bar */}
         <Box
           sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 64,
             display: 'flex',
             alignItems: 'center',
             px: 0,
-            height: 64,
+            bgcolor: 'transparent',
+            zIndex: 100,
           }}
         >
           <IconButton onClick={() => navigate(-1)}>
@@ -205,15 +252,27 @@ export default function SubmitInitial() {
           </IconButton>
         </Box>
 
-        <Box sx={{ pt: 2, pb: 2, textAlign: 'center' }}>
-          <Typography variant="h4" gutterBottom sx={{ color: 'text.primary' }}>
-            Nominate 5 Songs from 2000 to 2025
-          </Typography>
-        </Box>
+        {/* Spacer for the fixed top bar */}
+        <Box sx={{ height: 64 }} />
 
-        <Stack spacing={2} sx={{ pb: 2 }}>
-  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-    <List disablePadding sx={{ width: '100%', maxWidth: 600, px: 2 }}>
+
+        {/* Scrollable Song Selection List */}
+        <Stack>
+  {/* Main Heading Image at the Top with Highest Z-Index */}
+  <Box
+  component="img"
+  src="/nomination-screen-heading.png"
+  sx={{
+    display: 'block', // Ensures it's a block element to apply margin
+    marginLeft: 'auto', // Center the image horizontally
+    marginRight: 'auto', // Center the image horizontally
+    width: '90vw', // Set width to 90% of the viewport width
+    maxWidth: '100%', // Ensure the image does not exceed its natural width
+    pb: 2
+  }}
+/>
+  <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+    <List disablePadding sx={{ width: '100%', maxWidth: 900, px: 2, boxSizing: 'border-box' }}>
       {isLoading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {new Array(5).fill(null).map((_, index) => (
@@ -230,12 +289,7 @@ export default function SubmitInitial() {
                 cursor: 'pointer',
               }}
             >
-              <Skeleton
-                variant="rectangular"
-                width={56}
-                height={56}
-                sx={{ borderRadius: 1 }}
-              />
+              <Skeleton variant="rectangular" width={56} height={56} sx={{ borderRadius: 1 }} />
               <ListItemText
                 primary={<Skeleton width="50%" />}
                 secondary={<Skeleton width="60%" />}
@@ -281,9 +335,12 @@ export default function SubmitInitial() {
   </Box>
 </Stack>
 
+
+
+
       </Box>
 
-      {/* Bottom Submit Bar (Fixed) */}
+      {/* Fixed Submit Button Bar */}
       <Box
         sx={{
           position: 'fixed',
@@ -307,51 +364,49 @@ export default function SubmitInitial() {
         >
           {submitting ? (
             <>
-              <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} /> {/* Spinner */}
+              <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
               Submitting...
             </>
           ) : (
             'Submit'
           )}
         </Button>
-        <Typography
+        {/* <Typography
           variant="body2"
           sx={{
             pt: 2,
-            color: 'grey.600', // Use Material-UI's grey color for caption text
+            color: 'grey.600',
             textAlign: 'center',
           }}
         >
           Note: You can come back to this screen to update your song choices anytime before voting opens.
-        </Typography>
+        </Typography> */}
       </Box>
 
       {/* Search Dialog */}
       <Dialog
-  fullScreen={useMediaQuery(useTheme().breakpoints.down('sm'))}
-  open={open}
-  onClose={handleClose}
-  fullWidth
-  maxWidth="md"
-  slots={{ transition: Transition }}
->
-  <AppBar sx={{ position: 'relative' }}>
-    <Toolbar>
-      <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
-        <CloseIcon />
-      </IconButton>
-      <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-        Add a Song
-      </Typography>
-    </Toolbar>
-  </AppBar>
+        fullScreen={useMediaQuery(useTheme().breakpoints.down('sm'))}
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="md"
+        slots={{ transition: Transition }}
+      >
+        <AppBar sx={{ position: 'relative' }}>
+          <Toolbar>
+            <IconButton edge="start" color="inherit" onClick={handleClose} aria-label="close">
+              <CloseIcon />
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              Add a Song
+            </Typography>
+          </Toolbar>
+        </AppBar>
 
-  {/* Remove padding here */}
-  <Box sx={{px: 2, pt: 2}}>
-    <SearchComponent onSelect={handleSongSelect} />
-  </Box>
-</Dialog>
-
+        <Box sx={{ px: 2, pt: 2 }}>
+          <SearchComponent onSelect={handleSongSelect} />
+        </Box>
+      </Dialog>
 
       {/* Snackbar */}
       <Snackbar
@@ -366,4 +421,5 @@ export default function SubmitInitial() {
       </Snackbar>
     </>
   );
+
 }
