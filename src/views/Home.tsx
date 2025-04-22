@@ -87,7 +87,7 @@ export default function Home() {
       window.scrollTo(0, 0);
     }
   }, [loadingContent, loading]);
-  
+
 
   const handleViewVotesClick = async () => {
     const user = localStorage.getItem('userName');
@@ -141,100 +141,109 @@ export default function Home() {
           style={{ maxWidth: '90%', height: 'auto', display: 'block', margin: '0 auto' }}
         />
 
-{loadingContent ? (
-  <Skeleton
-    variant="text"
-    width={280}
-    height={28}
-    sx={{ mt: 2, mx: 'auto' }}
-  />
-) : songCount !== null && (
-  <Typography
-    variant="body1"
-    sx={{ mt: 2, color: 'text.primary' }}
-  >
-    There {songCount === 1 ? 'is' : 'are'} currently {songCount}/110 song
-    {songCount !== 1 ? 's' : ''} in the pool.
-  </Typography>
-)}
+        {loadingContent ? (
+          <Skeleton
+            variant="text"
+            width={280}
+            height={28}
+            sx={{ mt: 2, mx: 'auto' }}
+          />
+        ) : songCount !== null && (
+          <Typography
+  variant="body1"
+  sx={{ mt: 2, color: 'text.primary' }}
+>
+  {songCount === 110
+    ? 'Voting is now open!'
+    : `There ${songCount === 1 ? 'is' : 'are'} currently ${songCount}/110 song${songCount !== 1 ? 's' : ''} in the pool.`}
+</Typography>
+
+        )}
 
       </Box>
 
       {/* Fixed bottom button stack with skeletons */}
       <Box
-  sx={{
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    backgroundImage: 'url("/mustard-dotted-scrap.png")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'top',
-    backgroundRepeat: 'no-repeat',
-    py: 6,
-    zIndex: 10,
-  }}
->
-  <Stack
-    spacing={2}
-    sx={{
-      width: '90%',
-      maxWidth: 600,
-      mx: 'auto',
-      px: 3,
-    }}
-    alignItems="center"
-  >
-    {loadingContent ? (
-      <>
-        <Skeleton
-          variant="rectangular"
-          width="100%"
-          height={74}
-          sx={{ borderRadius: 1 }}
-        />
-        <Skeleton
-          variant="rectangular"
-          width="100%"
-          height={74}
-          sx={{ borderRadius: 1 }}
-        />
-      </>
-    ) : (
-      <>
-        <Button
-          variant="contained"
-          size="large"
-          sx={{ py: 3, width: '100%', px: 2 }}
-          onClick={() => navigate('/submit-initial')}
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          backgroundImage: 'url("/mustard-dotted-scrap.png")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'top',
+          backgroundRepeat: 'no-repeat',
+          py: 6,
+          zIndex: 10,
+        }}
+      >
+        <Stack
+          spacing={2}
+          sx={{
+            width: '90%',
+            maxWidth: 600,
+            mx: 'auto',
+            px: 3,
+          }}
+          alignItems="center"
         >
-          {hasSubmitted ? '✏️ Update my songs' : '🎧 Nominate Songs'}
-        </Button>
-
-        <Button
-          variant="contained"
-          size="large"
-          color="primary"
-          fullWidth
-          sx={{ py: 3, width: '100%', px: 2 }}
-          onClick={hasVotedFinal ? handleViewVotesClick : () => navigate('/vote')}
-          disabled={loadingSongs}
-        >
-          {loadingSongs ? (
+          {loadingContent ? (
             <>
-              <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
-              Loading...
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={74}
+                sx={{ borderRadius: 1 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={74}
+                sx={{ borderRadius: 1 }}
+              />
             </>
-          ) : hasVotedFinal ? (
-            '👀 View my votes'
           ) : (
-            '📝 Vote'
+            <>
+              <Button
+                variant="contained"
+                size="large"
+                sx={{ py: 3, width: '100%', px: 2 }}
+                onClick={() => navigate('/submit-initial')}
+              >
+                {hasSubmitted ? '✏️ Update my songs' : '🎧 Nominate Songs'}
+              </Button>
+
+              <Button
+                variant="contained"
+                size="large"
+                color="primary"
+                fullWidth
+                sx={{ py: 3, width: '100%', px: 2 }}
+                onClick={() => {
+                  if (songCount !== 110) {
+                    setDialogOpen(true);
+                  } else {
+                    hasVotedFinal ? handleViewVotesClick() : navigate('/vote');
+                  }
+                }}
+                
+                disabled={loadingSongs}
+              >
+                {loadingSongs ? (
+                  <>
+                    <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
+                    Loading...
+                  </>
+                ) : hasVotedFinal ? (
+                  '👀 View my votes'
+                ) : (
+                  '📝 Vote'
+                )}
+              </Button>
+            </>
           )}
-        </Button>
-      </>
-    )}
-  </Stack>
-</Box>
+        </Stack>
+      </Box>
 
       {/* Dialogs */}
       <Dialog
@@ -260,7 +269,7 @@ export default function Home() {
         open={rankDialogOpen}
         onClose={() => setRankDialogOpen(false)}
         songs={finalSongs}
-        onUpdateSongs={() => {}}
+        onUpdateSongs={() => { }}
         readonly={true}
         hideDialogActions={hasVotedFinal}
       />

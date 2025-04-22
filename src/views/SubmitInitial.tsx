@@ -211,24 +211,29 @@ export default function SubmitInitial() {
           height: '100vh',
           width: '100vw',
           overflowY: 'auto',
-          pb: 12, // Padding for bottom bar
+          pb: 1, // Padding for bottom bar
         }}
       >
 
-        <Box
-          component="img"
-          src="/nomination-screen-overlays.png"
-          sx={{
-            position: 'fixed',
-            top: (theme) => theme.spacing(3),
-            left: '50%',
-            transform: (theme) => `translateX(calc(-55% + ${theme.spacing(0.25)})) scale(1.5)`,
-            transformOrigin: 'top center',
-            zIndex: 10,
-            width: '100%',
-            maxWidth: 600,
-          }}
-        />
+<Box
+  component="img"
+  src="/nomination-screen-overlays.png"
+  sx={{
+    position: 'fixed',
+    top: (theme) => `calc(${theme.spacing(0)} - ${theme.spacing(7)})`,
+    [useTheme().breakpoints.up('md')]: {
+      top: `calc(${useTheme().spacing(0)} - ${useTheme().spacing(24)})`, // bump up by 10px
+    },
+    left: '50%',
+    transform: `translateX(calc(-60%)) scale(2.1)`,
+    transformOrigin: 'top center',
+    zIndex: 1,
+    width: '100%',
+    maxWidth: 800,
+    pointerEvents: 'none',
+  }}
+/>
+
 
 
 
@@ -247,7 +252,7 @@ export default function SubmitInitial() {
             zIndex: 100,
           }}
         >
-          <IconButton onClick={() => navigate(-1)}>
+          <IconButton onClick={() => navigate(-1)} sx={{ color: '#000', px: 2, scale: 1 }}>
             <ChevronLeftIcon />
           </IconButton>
         </Box>
@@ -263,16 +268,18 @@ export default function SubmitInitial() {
   component="img"
   src="/nomination-screen-heading.png"
   sx={{
-    display: 'block', // Ensures it's a block element to apply margin
-    marginLeft: 'auto', // Center the image horizontally
-    marginRight: 'auto', // Center the image horizontally
-    width: '90vw', // Set width to 90% of the viewport width
-    maxWidth: '100%', // Ensure the image does not exceed its natural width
+    display: 'block',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '90%',        // Scales with viewport
+    maxWidth: 600,       // Same max width as the card container
+    height: 'auto',      // Maintain aspect ratio
     pb: 2
   }}
 />
+
   <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-    <List disablePadding sx={{ width: '100%', maxWidth: 900, px: 2, boxSizing: 'border-box' }}>
+    <List disablePadding sx={{ width: '90%', maxWidth: 900, px: 2, boxSizing: 'border-box' }}>
       {isLoading ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           {new Array(5).fill(null).map((_, index) => (
@@ -349,7 +356,8 @@ export default function SubmitInitial() {
           right: 0,
           backgroundColor: '#fff',
           boxShadow: '0 -4px 8px rgba(0,0,0,0.1)',
-          p: 3,
+          px: 5,
+          py: 2,
           zIndex: 1000,
         }}
       >

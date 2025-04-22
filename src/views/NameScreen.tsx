@@ -34,7 +34,7 @@ export default function NameScreen() {
       sx={{
         width: '100vw',
         height: '100vh', // full height
-        backgroundImage: 'url("/home-bg.jpg")',
+        backgroundImage: 'url("/green-wrinkled-paper.webp")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
