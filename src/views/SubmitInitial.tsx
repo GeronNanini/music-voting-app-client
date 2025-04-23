@@ -17,17 +17,18 @@ import {
   Avatar,
   Alert,
   Skeleton,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { TransitionProps } from '@mui/material/transitions';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useNavigate } from 'react-router-dom'; // <-- Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import SearchComponent from '../components/SearchComponent';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const LOCAL_STORAGE_KEY = 'submittedSongs';
 
 interface SongSelection {
   name: string;
@@ -42,8 +43,6 @@ const Transition = (props: TransitionProps & { children: React.ReactElement }) =
   <Slide direction="up" {...props} />
 );
 
-const LOCAL_STORAGE_KEY = 'submittedSongs';
-
 export default function SubmitInitial() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -51,10 +50,11 @@ export default function SubmitInitial() {
   const [selectedSongs, setSelectedSongs] = useState<(SongSelection | null)[]>([null, null, null, null, null]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // <-- Add loading state
-  const navigate = useNavigate(); // <-- Create the navigate instance
+  const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [hasPreviouslySubmitted, setHasPreviouslySubmitted] = useState(false);
 
+  const navigate = useNavigate();
   const userId = localStorage.getItem('userName');
 
   useEffect(() => {
@@ -62,8 +62,7 @@ export default function SubmitInitial() {
       if (!userId) return;
 
       try {
-        setIsLoading(true); // Start loading
-        // TODO: Update to use axios
+        setIsLoading(true);
         const res = await fetch(`${API_URL}/api/nominated-songs?user=${userId}`);
         if (!res.ok) throw new Error('Failed to fetch initial songs.');
         const data = await res.json();
@@ -71,16 +70,18 @@ export default function SubmitInitial() {
         if (Array.isArray(data.songs)) {
           const filled = new Array(5).fill(null).map((_, i) => data.songs[i] || null);
           setSelectedSongs(filled);
+          setHasPreviouslySubmitted(data.songs.length > 0); // Set if songs are already submitted
         }
       } catch (err) {
         console.error('Failed to load submitted songs:', err);
       } finally {
-        setIsLoading(false); // End loading
+        setIsLoading(false);
       }
     };
 
     fetchSubmittedSongs();
   }, [userId]);
+
 
   const handleOpenSearchDialog = (index: number) => {
     setSelectedIndex(index);
@@ -124,10 +125,10 @@ export default function SubmitInitial() {
   };
 
   const handleSubmit = async () => {
-    setSubmitting(true); // Start spinner
+    setSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 200)); // Keep spinner for 200ms minimum
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const validSongs = selectedSongs.filter(Boolean) as SongSelection[];
 
@@ -139,7 +140,6 @@ export default function SubmitInitial() {
       }
 
       const userName = localStorage.getItem('userName');
-      //TODO: update to use axios
       const res = await fetch(`${API_URL}/api/submit-initial`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -167,7 +167,12 @@ export default function SubmitInitial() {
       }
 
       if (res.status === 200) {
-        setErrorMessage(data.message || 'Songs submitted successfully!');
+        // Change message based on whether it's an update or a submit
+        const successMessage = hasPreviouslySubmitted
+          ? 'Your songs have been updated successfully!'
+          : 'Songs submitted successfully!';
+
+        setErrorMessage(successMessage);
         setAlertSeverity('success');
         setShowSnackbar(true);
 
@@ -184,13 +189,13 @@ export default function SubmitInitial() {
       setAlertSeverity('error');
       setShowSnackbar(true);
     } finally {
-      setSubmitting(false); // End spinner
+      setSubmitting(false);
     }
   };
 
+
   return (
     <>
-      {/* Fixed Background Wrapper */}
       <Box
         sx={{
           position: 'fixed',
@@ -198,46 +203,38 @@ export default function SubmitInitial() {
           left: 0,
           height: '100vh',
           width: '100vw',
-          backgroundImage: 'url("/white-wrinkled-paper.png")',
+          backgroundImage: 'url("/white-wrinkled-paper.webp")',
           backgroundRepeat: 'repeat',
           backgroundSize: 'cover',
           zIndex: -1,
         }}
       />
-
-      {/* Scrollable Content Area */}
       <Box
         sx={{
           height: '100vh',
           width: '100vw',
           overflowY: 'auto',
-          pb: 1, // Padding for bottom bar
+          pb: 1,
         }}
       >
-
-<Box
-  component="img"
-  src="/nomination-screen-overlays.png"
-  sx={{
-    position: 'fixed',
-    top: (theme) => `calc(${theme.spacing(0)} - ${theme.spacing(7)})`,
-    [useTheme().breakpoints.up('md')]: {
-      top: `calc(${useTheme().spacing(0)} - ${useTheme().spacing(24)})`, // bump up by 10px
-    },
-    left: '50%',
-    transform: `translateX(calc(-60%)) scale(2.1)`,
-    transformOrigin: 'top center',
-    zIndex: 1,
-    width: '100%',
-    maxWidth: 800,
-    pointerEvents: 'none',
-  }}
-/>
-
-
-
-
-        {/* Top App Bar */}
+        <Box
+          component="img"
+          src="/nomination-screen-overlays.webp"
+          sx={{
+            position: 'fixed',
+            top: (theme) => `calc(${theme.spacing(0)} - ${theme.spacing(7)})`,
+            [useTheme().breakpoints.up('md')]: {
+              top: `calc(${useTheme().spacing(0)} - ${useTheme().spacing(24)})`,
+            },
+            left: '50%',
+            transform: `translateX(calc(-60%)) scale(2.1)`,
+            transformOrigin: 'top center',
+            zIndex: 1,
+            width: '100%',
+            maxWidth: 800,
+            pointerEvents: 'none',
+          }}
+        />
         <Box
           sx={{
             position: 'fixed',
@@ -256,98 +253,87 @@ export default function SubmitInitial() {
             <ChevronLeftIcon />
           </IconButton>
         </Box>
-
-        {/* Spacer for the fixed top bar */}
         <Box sx={{ height: 64 }} />
-
-
-        {/* Scrollable Song Selection List */}
         <Stack>
-  {/* Main Heading Image at the Top with Highest Z-Index */}
-  <Box
-  component="img"
-  src="/nomination-screen-heading.png"
-  sx={{
-    display: 'block',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    width: '90%',        // Scales with viewport
-    maxWidth: 600,       // Same max width as the card container
-    height: 'auto',      // Maintain aspect ratio
-    pb: 2
-  }}
-/>
-
-  <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-    <List disablePadding sx={{ width: '90%', maxWidth: 900, px: 2, boxSizing: 'border-box' }}>
-      {isLoading ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          {new Array(5).fill(null).map((_, index) => (
-            <ListItem
-              key={index}
-              sx={{
-                bgcolor: 'background.paper',
-                color: 'text.primary',
-                borderRadius: 2,
-                border: '1px solid #ddd',
-                mb: 1,
-                px: 2,
-                py: 1.5,
-                cursor: 'pointer',
-              }}
-            >
-              <Skeleton variant="rectangular" width={56} height={56} sx={{ borderRadius: 1 }} />
-              <ListItemText
-                primary={<Skeleton width="50%" />}
-                secondary={<Skeleton width="60%" />}
-                sx={{ ml: 2 }}
-              />
-            </ListItem>
-          ))}
-        </Box>
-      ) : (
-        selectedSongs.map((song, index) => (
-          <ListItem
-            key={song?.spotifyUrl || index}
-            onClick={() => handleOpenSearchDialog(index)}
+          <Box
+            component="img"
+            src="/nomination-screen-heading.webp"
             sx={{
-              bgcolor: 'background.paper',
-              color: 'text.primary',
-              borderRadius: 2,
-              border: '1px solid #ddd',
-              mb: 1,
-              px: 2,
-              py: 1.5,
-              cursor: 'pointer',
+              display: 'block',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              width: '90%',
+              maxWidth: 600,
+              height: 'auto',
+              pb: 2,
             }}
-          >
-            <ListItemAvatar>
-              <Avatar
-                src={song?.imageUrl}
-                alt={song?.name}
-                variant="square"
-                sx={{ width: 56, height: 56, borderRadius: 1 }}
-              />
-            </ListItemAvatar>
-            <ListItemText
-              primary={song ? song.name : `Select Song ${index + 1}`}
-              secondary={song ? song.artist : 'Tap to search and add a song'}
-              primaryTypographyProps={{ fontWeight: song ? 500 : 400 }}
-              sx={{ ml: 2 }}
-            />
-          </ListItem>
-        ))
-      )}
-    </List>
-  </Box>
-</Stack>
-
-
-
-
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <List disablePadding sx={{ width: '90%', maxWidth: 900, px: 2, boxSizing: 'border-box' }}>
+              {isLoading ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  {new Array(5).fill(null).map((_, index) => (
+                    <ListItem
+                      key={index}
+                      sx={{
+                        bgcolor: 'background.paper',
+                        color: 'text.primary',
+                        borderRadius: 2,
+                        border: '1px solid #ddd',
+                        mb: 1,
+                        px: 2,
+                        py: 1.5,
+                        cursor: 'pointer',
+                        opacity: isLoading ? 1 : 0,
+                        transition: 'opacity 0.3s ease-out',
+                      }}
+                    >
+                      <Skeleton variant="rectangular" width={56} height={56} sx={{ borderRadius: 1, transition: 'opacity 0.3s ease-out' }} />
+                      <ListItemText
+                        primary={<Skeleton width="50%" sx={{ opacity: isLoading ? 1 : 0, transition: 'opacity 0.3s ease-out' }} />}
+                        secondary={<Skeleton width="60%" sx={{ opacity: isLoading ? 1 : 0, transition: 'opacity 0.3s ease-out' }} />}
+                        sx={{ ml: 2 }}
+                      />
+                    </ListItem>
+                  ))}
+                </Box>
+              ) : (
+                selectedSongs.map((song, index) => (
+                  <ListItem
+                    key={song?.spotifyUrl || index}
+                    onClick={() => handleOpenSearchDialog(index)}
+                    sx={{
+                      bgcolor: 'background.paper',
+                      color: 'text.primary',
+                      borderRadius: 2,
+                      border: '1px solid #ddd',
+                      mb: 1,
+                      px: 2,
+                      py: 1.5,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar
+                        src={song?.imageUrl}
+                        alt={song?.name}
+                        variant="square"
+                        sx={{ width: 56, height: 56, borderRadius: 1 }}
+                      />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={song ? song.name : `Select Song ${index + 1}`}
+                      secondary={song ? song.artist : 'Tap to search and add a song'}
+                      primaryTypographyProps={{ fontWeight: song ? 500 : 400 }}
+                      sx={{ ml: 2 }}
+                    />
+                  </ListItem>
+                ))
+              )}
+            </List>
+          </Box>
+        </Stack>
       </Box>
-
-      {/* Fixed Submit Button Bar */}
       <Box
         sx={{
           position: 'fixed',
@@ -367,31 +353,22 @@ export default function SubmitInitial() {
           sx={{ py: 2, width: '100%', px: 2 }}
           color="primary"
           fullWidth
-          disabled={selectedSongs.filter(Boolean).length !== 5 || submitting}
+          disabled={submitting || selectedSongs.filter(Boolean).length !== 5}
           onClick={handleSubmit}
         >
           {submitting ? (
             <>
               <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
-              Submitting...
+              {hasPreviouslySubmitted ? 'Updating...' : 'Submitting...'}
             </>
+          ) : selectedSongs.every((song) => song !== null) ? (
+            hasPreviouslySubmitted ? 'Update' : 'Submit'
           ) : (
             'Submit'
           )}
         </Button>
-        {/* <Typography
-          variant="body2"
-          sx={{
-            pt: 2,
-            color: 'grey.600',
-            textAlign: 'center',
-          }}
-        >
-          Note: You can come back to this screen to update your song choices anytime before voting opens.
-        </Typography> */}
-      </Box>
 
-      {/* Search Dialog */}
+      </Box>
       <Dialog
         fullScreen={useMediaQuery(useTheme().breakpoints.down('sm'))}
         open={open}
@@ -410,13 +387,10 @@ export default function SubmitInitial() {
             </Typography>
           </Toolbar>
         </AppBar>
-
         <Box sx={{ px: 2, pt: 2 }}>
           <SearchComponent onSelect={handleSongSelect} />
         </Box>
       </Dialog>
-
-      {/* Snackbar */}
       <Snackbar
         open={showSnackbar}
         autoHideDuration={8000}
@@ -429,5 +403,4 @@ export default function SubmitInitial() {
       </Snackbar>
     </>
   );
-
 }

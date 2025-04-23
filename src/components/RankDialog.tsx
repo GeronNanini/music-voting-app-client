@@ -129,7 +129,7 @@ export default function RankDialog({
       TransitionComponent={Transition} 
 >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Your Shortlist
+          Your Votes
           <IconButton onClick={onClose}>
             <Close />
           </IconButton>

@@ -6,11 +6,6 @@ import {
   Button,
   Stack,
   Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
   CircularProgress,
   Skeleton,
 } from '@mui/material';
@@ -27,10 +22,19 @@ export default function Home() {
   const [hasVotedFinal, setHasVotedFinal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingContent, setLoadingContent] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [rankDialogOpen, setRankDialogOpen] = useState(false);
   const [finalSongs, setFinalSongs] = useState<any[]>([]);
   const [loadingSongs, setLoadingSongs] = useState(false);
+  const [guestCount, setGuestCount] = useState<number | null>(null);
+
+  const fetchGuestCount = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/host/guest-count`);
+      setGuestCount(res.data.count);
+    } catch (err) {
+      console.error('Failed to fetch guest count:', err);
+    }
+  }, []);
 
   const fetchSongCount = useCallback(async () => {
     try {
@@ -67,6 +71,7 @@ export default function Home() {
         }
 
         await fetchSongCount();
+        await fetchGuestCount(); // ✅ fetch guest count here
         await checkFinalVote(userName);
       } catch (err) {
         console.error('Error loading home data:', err);
@@ -80,7 +85,8 @@ export default function Home() {
 
     window.addEventListener('songsUpdated', fetchSongCount);
     return () => window.removeEventListener('songsUpdated', fetchSongCount);
-  }, [navigate, fetchSongCount]);
+  }, [navigate, fetchSongCount, fetchGuestCount]);
+
 
   useEffect(() => {
     if (!loadingContent && !loading) {
@@ -112,7 +118,7 @@ export default function Home() {
       sx={{
         width: '100vw',
         minHeight: '100vh',
-        backgroundImage: 'url("/green-wrinkled-paper.png")',
+        backgroundImage: 'url("/green-wrinkled-paper.webp")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -136,7 +142,7 @@ export default function Home() {
         }}
       >
         <img
-          src="/home-heading.png"
+          src="/home-heading.webp"
           alt="Hottest 100 Heading"
           style={{ maxWidth: '90%', height: 'auto', display: 'block', margin: '0 auto' }}
         />
@@ -146,17 +152,26 @@ export default function Home() {
             variant="text"
             width={280}
             height={28}
-            sx={{ mt: 2, mx: 'auto' }}
+            sx={{
+              mt: 2,
+              mx: 'auto',
+              opacity: loadingContent ? 1 : 0, // Fade in when loadingContent is false
+              transition: 'opacity 0.3s ease-out',
+            }}
           />
+
         ) : songCount !== null && (
           <Typography
-  variant="body1"
-  sx={{ mt: 2, color: 'text.primary' }}
->
-  {songCount === 110
-    ? 'Voting is now open!'
-    : `There ${songCount === 1 ? 'is' : 'are'} currently ${songCount}/110 song${songCount !== 1 ? 's' : ''} in the pool.`}
-</Typography>
+            variant="body1"
+            sx={{ mt: 2, color: 'text.primary' }}
+          >
+            {guestCount !== null && songCount !== null && (
+              songCount === guestCount * 5
+                ? '🎉 Voting is now open!'
+                : `There ${songCount === 1 ? 'is' : 'are'} currently ${songCount}/${guestCount * 5} song${songCount !== 1 ? 's' : ''} nominated.`
+            )}
+          </Typography>
+
 
         )}
 
@@ -169,7 +184,7 @@ export default function Home() {
           bottom: 0,
           left: 0,
           width: '100%',
-          backgroundImage: 'url("/mustard-dotted-scrap.png")',
+          backgroundImage: 'url("/mustard-dotted-scrap.webp")',
           backgroundSize: 'cover',
           backgroundPosition: 'top',
           backgroundRepeat: 'no-repeat',
@@ -193,14 +208,24 @@ export default function Home() {
                 variant="rectangular"
                 width="100%"
                 height={74}
-                sx={{ borderRadius: 1 }}
+                sx={{
+                  borderRadius: 1,
+                  opacity: loadingContent ? 1 : 0, // Fade in when loadingContent is false
+                  transition: 'opacity 0.3s ease-out',
+                }}
               />
+
               <Skeleton
                 variant="rectangular"
                 width="100%"
                 height={74}
-                sx={{ borderRadius: 1 }}
+                sx={{
+                  borderRadius: 1,
+                  opacity: loadingContent ? 1 : 0, // Fade in when loadingContent is false
+                  transition: 'opacity 0.3s ease-out',
+                }}
               />
+
             </>
           ) : (
             <>
@@ -209,9 +234,11 @@ export default function Home() {
                 size="large"
                 sx={{ py: 3, width: '100%', px: 2 }}
                 onClick={() => navigate('/submit-initial')}
+                disabled={songCount === (guestCount !== null ? guestCount * 5 : 0)}
               >
-                {hasSubmitted ? '✏️ Update my songs' : '🎧 Nominate Songs'}
+                {songCount === (guestCount !== null ? guestCount * 5 : 0) ? 'Nominations closed' : (hasSubmitted ? '✏️ Update my songs' : '🎧 Nominate Songs')}
               </Button>
+
 
               <Button
                 variant="contained"
@@ -220,50 +247,29 @@ export default function Home() {
                 fullWidth
                 sx={{ py: 3, width: '100%', px: 2 }}
                 onClick={() => {
-                  if (songCount !== 110) {
-                    setDialogOpen(true);
-                  } else {
-                    hasVotedFinal ? handleViewVotesClick() : navigate('/vote');
-                  }
+                  hasVotedFinal ? handleViewVotesClick() : navigate('/vote');
                 }}
-                
-                disabled={loadingSongs}
+                disabled={loadingSongs || songCount !== (guestCount !== null ? guestCount * 5 : null)}
               >
                 {loadingSongs ? (
                   <>
                     <CircularProgress size={24} sx={{ color: 'white', mr: 2 }} />
                     Loading...
                   </>
+                ) : guestCount !== null && songCount !== null && songCount !== (guestCount * 5) ? (
+                  '⏳ Voting not open'
                 ) : hasVotedFinal ? (
                   '👀 View my votes'
                 ) : (
                   '📝 Vote'
                 )}
               </Button>
+
+
             </>
           )}
         </Stack>
       </Box>
-
-      {/* Dialogs */}
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        aria-labelledby="vote-locked-dialog-title"
-        aria-describedby="vote-locked-dialog-description"
-      >
-        <DialogTitle id="vote-locked-dialog-title">Voting Locked</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="vote-locked-dialog-description">
-            Note: Voting is locked until everyone has voted.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <RankDialog
         open={rankDialogOpen}
