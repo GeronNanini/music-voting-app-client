@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './styles/theme'; // Import your custom theme
@@ -7,9 +8,9 @@ import SubmitInitial from './views/SubmitInitial';
 import Vote from './views/Vote';
 import ProtectedRoute from './views/ProtectedRoute';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <ThemeProvider theme={theme}>  {/* Wrap the Router with ThemeProvider */}
+    <ThemeProvider theme={theme}>
       <Router>
         <Routes>
           <Route path="/" element={<NameScreen />} />
@@ -41,6 +42,6 @@ function App() {
       </Router>
     </ThemeProvider>
   );
-}
+};
 
 export default App;
